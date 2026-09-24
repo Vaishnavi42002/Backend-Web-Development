@@ -6,7 +6,8 @@
  *     After you create utils/AppError.js, delete both copies and import the shared one.
  *   - process.env.NODE_ENV is read directly here. It should come from config.nodeEnv.
  */
-
+const AppError = require('../utils/AppError');
+const config = require('../config');
 // DUPLICATED definition — should move to utils/AppError.js
 class AppError extends Error {
   constructor(message, statusCode) {
