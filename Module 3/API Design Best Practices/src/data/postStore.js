@@ -1,52 +1,114 @@
-function seedPosts() {
-  return [
-    { id: 1, title: 'Caching 101', author: 'maya', likes: 0, createdAt: 1 },
-    { id: 2, title: 'Queues vs Cron', author: 'raj', likes: 1, createdAt: 2 },
-    { id: 3, title: 'Why indexes matter', author: 'maya', likes: 3, createdAt: 3 },
-    { id: 4, title: 'JWT expiry gotchas', author: 'sam', likes: 2, createdAt: 4 },
-    { id: 5, title: 'Cursor pagination', author: 'maya', likes: 5, createdAt: 5 }
-  ];
-}
+let posts = [
+  {
+    id: 1,
+    title: 'First Post',
+    content: 'This is the first post'
+  },
+  {
+    id: 2,
+    title: 'Second Post',
+    content: 'This is the second post'
+  },
+  {
+    id: 3,
+    title: 'Third Post',
+    content: 'This is the third post'
+  },
+  {
+    id: 4,
+    title: 'Fourth Post',
+    content: 'This is the fourth post'
+  },
+  {
+    id: 5,
+    title: 'Fifth Post',
+    content: 'This is the fifth post'
+  }
+];
 
-let posts = seedPosts();
 let nextId = 6;
 
+function getAll() {
+  return posts;
+}
+
+function getById(id) {
+  return posts.find(
+    post => post.id === Number(id)
+  );
+}
+
+function create(data) {
+  const post = {
+    id: nextId++,
+    title: data.title,
+    content: data.content
+  };
+
+  posts.push(post);
+
+  return post;
+}
+
+function update(id, data) {
+  const post = getById(id);
+
+  if (data.title !== undefined) {
+    post.title = data.title;
+  }
+
+  if (data.content !== undefined) {
+    post.content = data.content;
+  }
+
+  return post;
+}
+
+function remove(id) {
+  const numericId = Number(id);
+
+  posts = posts.filter(
+    post => post.id !== numericId
+  );
+}
+
 function resetData() {
-  posts = seedPosts();
+  posts = [
+    {
+      id: 1,
+      title: 'First Post',
+      content: 'This is the first post'
+    },
+    {
+      id: 2,
+      title: 'Second Post',
+      content: 'This is the second post'
+    },
+    {
+      id: 3,
+      title: 'Third Post',
+      content: 'This is the third post'
+    },
+    {
+      id: 4,
+      title: 'Fourth Post',
+      content: 'This is the fourth post'
+    },
+    {
+      id: 5,
+      title: 'Fifth Post',
+      content: 'This is the fifth post'
+    }
+  ];
+
   nextId = 6;
 }
 
-function getAllPosts() {
-  return posts.slice();
-}
-
-function getPostById(id) {
-  return posts.find((post) => post.id === Number(id));
-}
-
-function createPost({ title, author }) {
-  const post = {
-    id: nextId++,
-    title,
-    author,
-    likes: 0,
-    createdAt: posts.length + 1
-  };
-  posts.push(post);
-  return post;
-}
-
-function incrementLikes(id) {
-  const post = getPostById(id);
-  if (!post) return null;
-  post.likes += 1;
-  return post;
-}
-
 module.exports = {
-  resetData,
-  getAllPosts,
-  getPostById,
-  createPost,
-  incrementLikes
+  getAll,
+  getById,
+  create,
+  update,
+  remove,
+  resetData
 };

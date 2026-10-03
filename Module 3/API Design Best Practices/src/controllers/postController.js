@@ -1,41 +1,79 @@
-const service = require('../services/postService');
-const http = require('../utils/http');
+const postService = require('../services/postService');
 
-function listPosts(req, res) {
-  const rows = service.listPosts(req.query);
-  return http.sendList(res, rows);
+async function list(req, res) {
+  const page = Number(req.query.page) || 1;
+
+  // Default limit = 2
+  // Maximum limit = 2
+  const requestedLimit = Number(req.query.limit) || 2;
+  const limit = Math.min(requestedLimit, 2);
+
+  const result = await postService.list(page, limit);
+
+  res.status(200).json({
+    success: true,
+    data: result.data,
+    meta: result.meta
+  });
 }
 
-function getPost(req, res) {
-  const post = service.getPost(req.params.id);
-  if (!post) {
-    return http.sendError(res, 404, { message: 'post missing' });
-  }
-  return http.sendOk(res, post);
+async function getById(req, res) {
+  const post = await postService.getById(req.params.id);
+
+  res.status(200).json({
+    success: true,
+    data: post
+  });
 }
 
-function createPost(req, res) {
-  const post = service.createPost(req.body);
-  return http.sendCreated(res, post);
+async function create(req, res) {
+  const post = await postService.create(req.body);
+
+  res.status(201).json({
+    success: true,
+    data: post
+  });
 }
 
-function likePost(req, res) {
-  const post = service.likePost(req.params.id);
-  return http.sendOk(res, { ok: true, likes: post.likes });
+async function edit(req, res) {
+  const post = await postService.edit(
+    req.params.id,
+    req.body
+  );
+
+  res.status(200).json({
+    success: true,
+    data: post
+  });
 }
 
+async function remove(req, res) {
+  await postService.remove(req.params.id);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      message: 'Post deleted successfully'
+    }
+  });
+}
+
+// Used only to demonstrate centralized error handling
 function explode(req, res) {
-  try {
-    service.explode();
-  } catch (err) {
-    return http.sendError(res, 500, { error: err.message, stack: err.debug || err.stack });
-  }
+  const error = new Error(
+    'This is a safe test error'
+  );
+
+  error.statusCode = 500;
+
+  throw error;
 }
 
 module.exports = {
-  listPosts,
-  getPost,
-  createPost,
-  likePost,
+  list,
+  getById,
+  create,
+  edit,
+  remove,
   explode
 };

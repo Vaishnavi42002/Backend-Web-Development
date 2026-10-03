@@ -1,42 +1,82 @@
 const store = require('../data/postStore');
 
-function listPosts(query = {}) {
-  // intentionally poor design: no pagination, no metadata, no contract standardisation
-  return store.getAllPosts();
+async function list(page, limit) {
+  const posts = store.getAll();
+
+  const total = posts.length;
+
+  const totalPages =
+    Math.ceil(total / limit) || 1;
+
+  const currentPage =
+    Math.max(1, Math.min(page, totalPages));
+
+  const start =
+    (currentPage - 1) * limit;
+
+  const data = posts.slice(
+    start,
+    start + limit
+  );
+
+  return {
+    data,
+    meta: {
+      page: currentPage,
+      limit,
+      total,
+      totalPages
+    }
+  };
 }
 
-function getPost(id) {
-  return store.getPostById(id);
-}
+async function getById(id) {
+  const post = store.getById(id);
 
-function createPost(body = {}) {
-  return store.createPost({
-    title: body.title,
-    author: body.author
-  });
-}
-
-function likePost(id) {
-  const post = store.incrementLikes(id);
   if (!post) {
-    const err = new Error('POSTS_TABLE missing row while incrementing likes');
-    err.statusCode = 500;
-    err.debug = 'FakeStack: at postService.js:19:11';
-    throw err;
+    const error = new Error('Post not found');
+    error.statusCode = 404;
+    throw error;
   }
+
   return post;
 }
 
-function explode() {
-  const err = new Error('SQLITE_CONSTRAINT in posts table');
-  err.statusCode = 500;
-  throw err;
+async function create(data) {
+  return store.create({
+    title: data.title,
+    content: data.content
+  });
+}
+
+async function edit(id, data) {
+  const post = store.getById(id);
+
+  if (!post) {
+    const error = new Error('Post not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return store.update(id, data);
+}
+
+async function remove(id) {
+  const post = store.getById(id);
+
+  if (!post) {
+    const error = new Error('Post not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  store.remove(id);
 }
 
 module.exports = {
-  listPosts,
-  getPost,
-  createPost,
-  likePost,
-  explode
+  list,
+  getById,
+  create,
+  edit,
+  remove
 };
