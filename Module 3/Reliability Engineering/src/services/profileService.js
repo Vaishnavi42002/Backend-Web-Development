@@ -1,22 +1,16 @@
 const DEFAULT_AVATAR = {
   url: 'https://cdn.aurora-profiles.dev/avatars/default.png',
   initials: '?',
-  source: 'fallback',
+  source: 'fallback'
 };
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 }
 
 function isRetryable(error) {
-  // Retry:
-  // 1. AbortError
-  // 2. HTTP 429
-  // 3. HTTP 5xx
-  // 4. Network errors
-  //
-  // Do NOT retry normal 4xx errors.
-
   if (!error) {
     return false;
   }
@@ -26,13 +20,16 @@ function isRetryable(error) {
     return true;
   }
 
-  // HTTP status errors
-  const status = error.status ?? error.statusCode;
+  // HTTP status
+  const status =
+    error.status ?? error.statusCode;
 
+  // Rate limit
   if (status === 429) {
     return true;
   }
 
+  // Server errors
   if (status >= 500 && status <= 599) {
     return true;
   }
@@ -54,11 +51,11 @@ function isRetryable(error) {
     return true;
   }
 
-  // Some clients use a generic "network" type
   if (error.type === 'network') {
     return true;
   }
 
+  // Normal 4xx errors are NOT retryable
   return false;
 }
 
@@ -77,32 +74,34 @@ async function withTimeout(operation, timeoutMs) {
 }
 
 async function withRetry(operation, options = {}) {
-  const maxAttempts = options.maxAttempts ?? 3;
-  const baseDelayMs = options.baseDelayMs ?? 25;
+  const maxAttempts =
+    options.maxAttempts ?? 3;
+
+  const baseDelayMs =
+    options.baseDelayMs ?? 25;
 
   let lastError;
 
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+  for (
+    let attempt = 0;
+    attempt < maxAttempts;
+    attempt++
+  ) {
     try {
       return await operation();
     } catch (error) {
       lastError = error;
 
-      // Do not retry non-retryable errors
       if (!isRetryable(error)) {
         throw error;
       }
 
-      // Last attempt failed
       if (attempt === maxAttempts - 1) {
         throw error;
       }
 
-      // Exponential backoff:
-      // attempt 0 -> baseDelayMs
-      // attempt 1 -> baseDelayMs * 2
-      // attempt 2 -> baseDelayMs * 4
-      const delay = baseDelayMs * 2 ** attempt;
+      const delay =
+        baseDelayMs * 2 ** attempt;
 
       await sleep(delay);
     }
@@ -116,18 +115,23 @@ async function getProfileWithAvatar(
   avatarClient,
   options = {}
 ) {
-  const timeoutMs = options.timeoutMs ?? 200;
-  const maxAttempts = options.maxAttempts ?? 3;
-  const baseDelayMs = options.baseDelayMs ?? 25;
+  const timeoutMs =
+    options.timeoutMs ?? 200;
+
+  const maxAttempts =
+    options.maxAttempts ?? 3;
+
+  const baseDelayMs =
+    options.baseDelayMs ?? 25;
 
   try {
     const avatar = await withRetry(
-      signal =>
+      () =>
         withTimeout(
-          currentSignal =>
+          signal =>
             avatarClient.getAvatar(
               authorId,
-              currentSignal
+              { signal }
             ),
           timeoutMs
         ),
@@ -142,10 +146,9 @@ async function getProfileWithAvatar(
       avatar,
       degraded: false
     };
-
   } catch (error) {
-    // Avatar failure should NOT fail the profile request.
-    // Use local fallback avatar.
+    // Avatar service failure must not
+    // break the profile response.
 
     return {
       authorId,
@@ -161,5 +164,5 @@ module.exports = {
   isRetryable,
   withTimeout,
   withRetry,
-  getProfileWithAvatar,
+  getProfileWithAvatar
 };
