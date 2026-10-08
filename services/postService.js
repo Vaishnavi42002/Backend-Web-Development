@@ -1,31 +1,48 @@
 const store = require('../data/postStore');
+const AppError = require('../utils/AppError');
 
-async function list(page, limit) {
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 2;
+const MAX_LIMIT = 2;
+
+async function list(pageInput, limitInput) {
+  const requestedPage = Number(pageInput) || DEFAULT_PAGE;
+  const requestedLimit = Number(limitInput) || DEFAULT_LIMIT;
+
+  const page = Math.max(1, requestedPage);
+
+  // Server-side limit protection
+  const limit = Math.min(
+    Math.max(1, requestedLimit),
+    MAX_LIMIT
+  );
+
   const posts = store.getAll();
 
   const total = posts.length;
 
   const totalPages =
-    Math.ceil(total / limit) || 1;
+    Math.max(1, Math.ceil(total / limit));
 
   const currentPage =
-    Math.max(1, Math.min(page, totalPages));
+    Math.min(page, totalPages);
 
   const start =
     (currentPage - 1) * limit;
 
-  const data = posts.slice(
-    start,
-    start + limit
-  );
+  const data =
+    posts.slice(start, start + limit);
 
   return {
     data,
+
     meta: {
       page: currentPage,
       limit,
       total,
-      totalPages
+      totalPages,
+      hasNextPage: currentPage < totalPages,
+      hasPreviousPage: currentPage > 1
     }
   };
 }
@@ -34,9 +51,11 @@ async function getById(id) {
   const post = store.getById(id);
 
   if (!post) {
-    const error = new Error('Post not found');
-    error.statusCode = 404;
-    throw error;
+    throw new AppError(
+      'Post not found',
+      404,
+      'POST_NOT_FOUND'
+    );
   }
 
   return post;
@@ -44,39 +63,29 @@ async function getById(id) {
 
 async function create(data) {
   return store.create({
-    title: data.title,
-    content: data.content
+    title: data.title.trim(),
+    content: data.content.trim()
   });
 }
 
-async function edit(id, data) {
+async function like(id) {
   const post = store.getById(id);
 
   if (!post) {
-    const error = new Error('Post not found');
-    error.statusCode = 404;
-    throw error;
+    throw new AppError(
+      'Post not found',
+      404,
+      'POST_NOT_FOUND'
+    );
   }
 
-  return store.update(id, data);
-}
-
-async function remove(id) {
-  const post = store.getById(id);
-
-  if (!post) {
-    const error = new Error('Post not found');
-    error.statusCode = 404;
-    throw error;
-  }
-
-  store.remove(id);
+  return store.like(id);
 }
 
 module.exports = {
   list,
   getById,
   create,
-  edit,
-  remove
+  like,
+  MAX_LIMIT
 };

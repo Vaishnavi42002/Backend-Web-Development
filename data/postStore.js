@@ -2,27 +2,32 @@ let posts = [
   {
     id: 1,
     title: 'First Post',
-    content: 'This is the first post'
+    content: 'This is the first post',
+    likes: 0
   },
   {
     id: 2,
     title: 'Second Post',
-    content: 'This is the second post'
+    content: 'This is the second post',
+    likes: 0
   },
   {
     id: 3,
     title: 'Third Post',
-    content: 'This is the third post'
+    content: 'This is the third post',
+    likes: 0
   },
   {
     id: 4,
     title: 'Fourth Post',
-    content: 'This is the fourth post'
+    content: 'This is the fourth post',
+    likes: 0
   },
   {
     id: 5,
     title: 'Fifth Post',
-    content: 'This is the fifth post'
+    content: 'This is the fifth post',
+    likes: 0
   }
 ];
 
@@ -33,16 +38,15 @@ function getAll() {
 }
 
 function getById(id) {
-  return posts.find(
-    post => post.id === Number(id)
-  );
+  return posts.find(post => post.id === Number(id));
 }
 
 function create(data) {
   const post = {
     id: nextId++,
     title: data.title,
-    content: data.content
+    content: data.content,
+    likes: 0
   };
 
   posts.push(post);
@@ -50,26 +54,14 @@ function create(data) {
   return post;
 }
 
-function update(id, data) {
+function like(id) {
   const post = getById(id);
 
-  if (data.title !== undefined) {
-    post.title = data.title;
-  }
-
-  if (data.content !== undefined) {
-    post.content = data.content;
+  if (post) {
+    post.likes += 1;
   }
 
   return post;
-}
-
-function remove(id) {
-  const numericId = Number(id);
-
-  posts = posts.filter(
-    post => post.id !== numericId
-  );
 }
 
 function resetData() {
@@ -77,27 +69,32 @@ function resetData() {
     {
       id: 1,
       title: 'First Post',
-      content: 'This is the first post'
+      content: 'This is the first post',
+      likes: 0
     },
     {
       id: 2,
       title: 'Second Post',
-      content: 'This is the second post'
+      content: 'This is the second post',
+      likes: 0
     },
     {
       id: 3,
       title: 'Third Post',
-      content: 'This is the third post'
+      content: 'This is the third post',
+      likes: 0
     },
     {
       id: 4,
       title: 'Fourth Post',
-      content: 'This is the fourth post'
+      content: 'This is the fourth post',
+      likes: 0
     },
     {
       id: 5,
       title: 'Fifth Post',
-      content: 'This is the fifth post'
+      content: 'This is the fifth post',
+      likes: 0
     }
   ];
 
@@ -108,7 +105,6 @@ module.exports = {
   getAll,
   getById,
   create,
-  update,
-  remove,
+  like,
   resetData
 };

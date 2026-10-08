@@ -1,44 +1,69 @@
-const express = require('express');
+const postService = require('../services/postService');
+const { sendSuccess } = require('../utils/http');
 
-const router = express.Router();
+async function list(req, res) {
+  const result = await postService.list(
+    req.query.page,
+    req.query.limit
+  );
 
-const controller = require('../controllers/postController');
-const asyncHandler = require('../utils/asyncHandler');
-const validateRequest = require('../utils/validateRequest');
-const v = require('../validators/post.validator');
+  return sendSuccess(
+    res,
+    200,
+    result.data,
+    result.meta
+  );
+}
 
-// GET /posts
-router.get(
-  '/',
-  asyncHandler(controller.list)
-);
+async function getById(req, res) {
+  const post =
+    await postService.getById(req.params.id);
 
-// GET /posts/:id
-router.get(
-  '/:id',
-  asyncHandler(controller.getById)
-);
+  return sendSuccess(
+    res,
+    200,
+    post
+  );
+}
 
-// POST /posts
-router.post(
-  '/',
-  v.createPost,
-  validateRequest,
-  asyncHandler(controller.create)
-);
+async function create(req, res) {
+  const post =
+    await postService.create(req.body);
 
-// PATCH /posts/:id
-router.patch(
-  '/:id',
-  v.editPost,
-  validateRequest,
-  asyncHandler(controller.edit)
-);
+  return sendSuccess(
+    res,
+    201,
+    post
+  );
+}
 
-// DELETE /posts/:id
-router.delete(
-  '/:id',
-  asyncHandler(controller.remove)
-);
+async function like(req, res) {
+  const post =
+    await postService.like(req.params.id);
 
-module.exports = router;
+  return sendSuccess(
+    res,
+    200,
+    post
+  );
+}
+
+// Used only for testing centralized
+// internal error handling.
+function explode(req, res, next) {
+  const error = new Error(
+    'Database connection failed: password=super-secret'
+  );
+
+  error.statusCode = 500;
+
+  next(error);
+}
+
+module.exports = {
+  list,
+  getById,
+  create,
+  like,
+  explode
+};
