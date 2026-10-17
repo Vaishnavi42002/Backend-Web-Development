@@ -1,11 +1,12 @@
-const postStore = require('../data/postStore');
+
+const postRepository = require('../repositories/postRepository');
 
 function listPosts() {
-  return postStore.posts;
+  return postRepository.findAll();
 }
 
 function getPost(id) {
-  return postStore.posts.find((post) => post.id === Number(id)) || null;
+  return postRepository.findById(id);
 }
 
 function createPost(fields) {
@@ -15,29 +16,36 @@ function createPost(fields) {
     throw error;
   }
 
-  const post = {
-    id: postStore.nextId(),
+  return postRepository.create({
     title: fields.title,
     body: fields.body || '',
     authorId: fields.authorId,
-  };
-  postStore.posts.push(post);
-  return post;
+  });
 }
 
-function updatePost(id, patch) {
-  const post = getPost(id);
-  if (!post) return null;
-  if (patch.title !== undefined) post.title = patch.title;
-  if (patch.body !== undefined) post.body = patch.body;
-  return post;
+function updatePost(id, patch = {}) {
+  // Only title and body can be updated, as in the starter code.
+  const allowedPatch = {};
+
+  if (patch.title !== undefined) {
+    allowedPatch.title = patch.title;
+  }
+
+  if (patch.body !== undefined) {
+    allowedPatch.body = patch.body;
+  }
+
+  return postRepository.update(id, allowedPatch);
 }
 
 function removePost(id) {
-  const index = postStore.posts.findIndex((post) => post.id === Number(id));
-  if (index === -1) return false;
-  postStore.posts.splice(index, 1);
-  return true;
+  return postRepository.remove(id);
 }
 
-module.exports = { listPosts, getPost, createPost, updatePost, removePost };
+module.exports = {
+  listPosts,
+  getPost,
+  createPost,
+  updatePost,
+  removePost,
+};
