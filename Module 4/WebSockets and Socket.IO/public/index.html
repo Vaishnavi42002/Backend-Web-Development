@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Socket.IO Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0fdfa; color: #1f2937; padding: 24px; }
+    h1 { font-size: 1.1rem; color: #0f766e; margin-bottom: 20px; font-weight: 800; }
+    .status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; margin-bottom: 16px; }
+    .connected { background: #dcfce7; color: #14532d; }
+    .disconnected { background: #fee2e2; color: #991b1b; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    button { padding: 8px 16px; border: none; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+    .btn-connect { background: #0d9488; color: #fff; }
+    .btn-disconnect { background: #ef4444; color: #fff; }
+    .btn-join { background: #7c3aed; color: #fff; }
+    .btn-leave { background: #f59e0b; color: #1f2937; }
+    .btn-emit { background: #2563eb; color: #fff; }
+    button:disabled { opacity: 0.4; cursor: default; }
+    .room-info { font-size: 0.8rem; color: #0f766e; background: #ccfbf1; padding: 6px 10px; border-radius: 8px; margin-bottom: 16px; }
+    .log { background: #1f2937; color: #e2e8f0; border-radius: 12px; padding: 16px; font-family: monospace; font-size: 0.78rem; line-height: 1.8; min-height: 200px; max-height: 400px; overflow-y: auto; }
+    .log-connect { color: #86efac; }
+    .log-receive { color: #67e8f9; }
+    .log-emit { color: #c4b5fd; }
+    .log-info { color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <h1>Socket.IO Demo, Real-Time Comments</h1>
+  <div id="status" class="status disconnected">Disconnected</div>
+  <div id="roomInfo" class="room-info">Room: none</div>
+
+  <div class="controls">
+    <button class="btn-connect" id="btnConnect">Connect</button>
+    <button class="btn-disconnect" id="btnDisconnect" disabled>Disconnect</button>
+    <button class="btn-join" id="btnJoin" disabled>Join "post-42"</button>
+    <button class="btn-leave" id="btnLeave" disabled>Leave "post-42"</button>
+    <button class="btn-emit" id="btnEmit" disabled>Post a comment</button>
+  </div>
+
+  <div class="log" id="log">Open the browser console. Click Connect to start.</div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    let socket = null;
+    let inRoom = false;
+    const ROOM = 'post-42';
+
+    const statusEl  = document.getElementById('status');
+    const roomEl    = document.getElementById('roomInfo');
+    const logEl     = document.getElementById('log');
+    const btnConn   = document.getElementById('btnConnect');
+    const btnDisc   = document.getElementById('btnDisconnect');
+    const btnJoin   = document.getElementById('btnJoin');
+    const btnLeave  = document.getElementById('btnLeave');
+    const btnEmit   = document.getElementById('btnEmit');
+
+    function addLog(cls, text) {
+      const div = document.createElement('div');
+      div.className = cls;
+      div.textContent = text;
+      logEl.appendChild(div);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function updateUI() {
+      const connected = socket && socket.connected;
+      statusEl.textContent = connected ? `Connected, ${socket.id}` : 'Disconnected';
+      statusEl.className = `status ${connected ? 'connected' : 'disconnected'}`;
+      roomEl.textContent = `Room: ${inRoom ? ROOM : 'none'}`;
+      btnConn.disabled  = !!connected;
+      btnDisc.disabled  = !connected;
+      btnJoin.disabled  = !connected || inRoom;
+      btnLeave.disabled = !connected || !inRoom;
+      btnEmit.disabled  = !connected || !inRoom;
+    }
+
+    btnConn.addEventListener('click', () => {
+      socket = io();
+      socket.on('connect', () => {
+        addLog('log-connect', `[+] connected  id=${socket.id}`);
+        updateUI();
+      });
+      socket.on('disconnect', (reason) => {
+        addLog('log-info', `[-] disconnected  reason=${reason}`);
+        inRoom = false;
+        updateUI();
+      });
+      socket.on('commentAdded', (data) => {
+        addLog('log-receive', `[recv] commentAdded  ${JSON.stringify(data)}`);
+      });
+    });
+
+    btnDisc.addEventListener('click', () => {
+      socket && socket.disconnect();
+    });
+
+    btnJoin.addEventListener('click', () => {
+      socket.emit('joinRoom', { room: ROOM });
+      addLog('log-emit', `[emit] joinRoom  room=${ROOM}`);
+      inRoom = true;
+      updateUI();
+    });
+
+    btnLeave.addEventListener('click', () => {
+      socket.emit('leaveRoom', { room: ROOM });
+      addLog('log-emit', `[emit] leaveRoom  room=${ROOM}`);
+      inRoom = false;
+      updateUI();
+    });
+
+    btnEmit.addEventListener('click', () => {
+      const data = { room: ROOM, text: `Comment at ${new Date().toLocaleTimeString()}` };
+      socket.emit('newComment', data);
+      addLog('log-emit', `[emit] newComment  ${JSON.stringify(data)}`);
+    });
+
+    updateUI();
+  </script>
+</body>
+</html>

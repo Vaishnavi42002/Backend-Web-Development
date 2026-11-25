@@ -1,0 +1,15 @@
+{
+  "name": "caching-with-redis",
+  "version": "1.0.0",
+  "description": "Caching with Redis: cache-aside pattern",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "node tests/run.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "ioredis": "^5.3.2"
+  }
+}

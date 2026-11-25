@@ -1,0 +1,19 @@
+{
+  "name": "lu51-1-jwt-verification-depth-starter",
+  "version": "1.0.0",
+  "description": "Starter: JWT verification depth — extend requireAuth and add tests",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "node tests/verify-depth.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

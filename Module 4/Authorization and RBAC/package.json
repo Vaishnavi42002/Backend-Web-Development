@@ -1,0 +1,19 @@
+{
+  "name": "lu54-rbac-idor-starter",
+  "version": "1.0.0",
+  "description": "Starter project: add requireRole and ownership checks to close an IDOR (LU 54)",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "node tests/run.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

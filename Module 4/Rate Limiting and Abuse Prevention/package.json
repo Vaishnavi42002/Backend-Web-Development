@@ -1,0 +1,19 @@
+{
+  "name": "lu58-rate-limiting",
+  "version": "1.0.0",
+  "description": "LU58 assignment — rate limiting on auth routes with express-rate-limit",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "node tests/run.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
